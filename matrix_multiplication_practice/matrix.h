@@ -1,0 +1,5 @@
+
+int mat_add(int**, int**, int**, int);
+int mat_sub(int**, int**, int**, int);
+int mat_mul(int**, int**, int**, int);
+int mat_inv(int**, int**, int);
