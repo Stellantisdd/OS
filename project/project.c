@@ -6,7 +6,9 @@
 #include <semaphore.h>
 
 #define MAX_LEN 1000
-
+int count = 0;
+int count_num = 0;
+double sum = 0;
 void *matmul_row(void *row); //thread가 실행할 함수. 매개변수로 row값을 받는다. 받은 row값을 토대로 아 몇 번째 행 계산이구나 인지.
 void print_matrix(int matrix[][MAX_LEN], char *name);
 
@@ -19,8 +21,10 @@ sem_t bin_sem;
 int main()
 {
     int i, j;
-    clock_t start, stop;
-
+    struct timespec start, stop;
+    double proc_time;//소수점 까지 표현 가능한 type으로 만듦.
+    //그냥 clock 사용시 thread마다의 시간들을 다 count함. 따라서 timespec 사용.
+    
     int res;
     pthread_t a_thread[MAX_LEN];
     int a_thread_row;
@@ -30,7 +34,7 @@ int main()
     srandom((unsigned int)time(NULL));
     for(i = 0; i < MAX_LEN; i++)        // i (ROW)
     {
-        for(j = 0; j< MAX_LEN; j++)     // j (COLUMN)
+        for(j = 0; j < MAX_LEN; j++)     // j (COLUMN)
         {
             a_matrix[i][j] = random() % 10;
             b_matrix[i][j] = random() % 10;
@@ -45,7 +49,7 @@ int main()
     }
 //    
     /* Calculation */
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);//clock문제 해결 위해 clock)gettime사용.
     for(i=0; i < MAX_LEN; i++)     // i (ROW)
     {
         sem_wait(&bin_sem); // 주 목적은 sync sync맞추는 것 굉장히 중요!
@@ -68,16 +72,19 @@ int main()
             exit(EXIT_FAILURE);
         }
     }//여기까지가 matrix 곱셈. 여기서 끝.
-    stop = clock();
+    clock_gettime(CLOCK_MONOTONIC, &stop);//s와 ns단위 두개 다 존재.
+
+    proc_time = (double)(stop.tv_sec - start.tv_sec);
+    proc_time += ((double)(stop.tv_nsec - start.tv_nsec) / 1000000000);
+    //더 자세한 값을 얻기위해서 s와 ns를 다 더해준다. 
 
     /* Check */
-    print_matrix(a_matrix, "A");
-    print_matrix(b_matrix, "B");
-    print_matrix(c_matrix, "C");
+    // print_matrix(a_matrix, "A");
+    // print_matrix(b_matrix, "B");
+    // print_matrix(c_matrix, "C");
 
-    printf("\nProcessing time: %fs\n", ((double)stop - start) / CLOCKS_PER_SEC);
+    printf("\nProcessing time: %fs\n", proc_time);
     return 0;
-
 }
 //
 void *matmul_row(void * row)//1:39:00
