@@ -6,6 +6,7 @@
 #include <semaphore.h>
 
 #define MAX_LEN 1200
+#define JUMP 200
 int count = 0;
 int count_num = 0;
 double sum = 0;
@@ -20,7 +21,7 @@ sem_t bin_sem;
 
 int main()
 {
-    while(count != 5){
+
         int i, j;
         struct timespec start, stop;
         double proc_time;//소수점 까지 표현 가능한 type으로 만듦.
@@ -49,9 +50,10 @@ int main()
             exit(EXIT_FAILURE);
         }
     //    
+    while(count != 5){
         /* Calculation */
         clock_gettime(CLOCK_MONOTONIC, &start);//clock문제 해결 위해 clock)gettime사용.
-        for(i=0; i < MAX_LEN; i++)     // i (ROW)
+        for(i=0; i < MAX_LEN; i = i + JUMP)     // i (ROW)
         {
             sem_wait(&bin_sem); // 주 목적은 sync sync맞추는 것 굉장히 중요!
             a_thread_row = i; // 몇 번 행에서 시작. 공유변수. 생성된 thread가 얘를 읽고 post하기 까지 기다린다.
@@ -64,7 +66,7 @@ int main()
             }
         }
     //
-        for(i = 0; i < MAX_LEN; i++)     // i (ROW)
+        for(i = 0; i < MAX_LEN; i = i + JUMP)     // i (ROW)
         {
             res = pthread_join(a_thread[i], &thread_result);
             if(res != 0)
@@ -97,17 +99,20 @@ int main()
 void *matmul_row(void * row)//1:39:00
 {
     int mat_row;
-    int i, j;
+    int i, j, k;
 
     mat_row = *((int *)row);     //지역변수에다가 값을 받아서 저장해서 하겠다. 계산 분할 -> 성능 감소 but 안정성 증가.
     sem_post(&bin_sem);          //읽기 완료 후 sempost 해준다.
     //89 line까지가 내가 계산해야하는 행을 mat_row에 저장. 이제 element하나하나 계산 시작.
-    for(i = 0; i < MAX_LEN; i++)
+    for (k = mat_row; k < mat_row + JUMP; k++)
     {
-        c_matrix[mat_row][i] = 0; //c_matrix값 0으로 초기화.
-        for(j = 0; j < MAX_LEN; j++)
+        for(i = 0; i < MAX_LEN; i++)
         {
-            c_matrix[mat_row][i] += a_matrix[mat_row][j] * b_matrix[j][i];//곱하고 더하는 과정 반복.
+            c_matrix[k][i] = 0; //c_matrix값 0으로 초기화.
+            for(j = 0; j < MAX_LEN; j++)
+            {
+                c_matrix[k][i] += a_matrix[k][j] * b_matrix[j][i];//곱하고 더하는 과정 반복.
+            }
         }
     }
     //한 행에 대한 연상 끝.
