@@ -7,6 +7,10 @@
 void matinit(int ***p_a, int ***p_b, int ***p_c, int len);
 void print_matrix(int**, char*, int);
 double wtime();
+int count = 0;
+int count_num = 0;
+double sum = 0;
+double sum_thread = 0;
 
 int main(int argc, char** argv)
 {
@@ -26,43 +30,48 @@ int main(int argc, char** argv)
     // } else {
     //     printf("Usage: matrix [row] [num_thread]\n");
     // }
+while(count != 5){
+        if (argc == 2) {
+            len = atoi(argv[1]);
+        } else {
+            len = 10;
+        }
+        matinit(&a, &b, &c, len);
 
-    if (argc == 2) {
-        len = atoi(argv[1]);
-    } else {
-        len = 10;
+        start = wtime();
+
+        if (mat_mul(a, b, c, len) != 0) {
+            fprintf(stderr, "Failed to Matrix multiplication");
+            exit(1);
+        }
+        
+        stop = wtime();
+
+        //print_matrix(a, "A", len);
+        //print_matrix(b, "B", len);
+        //print_matrix(c, "C", len);
+
+        //printf("\nProcessing time_single [%d]: %fs\n",count + 1, stop - start);
+        sum += stop - start;
+
+        start = wtime();
+
+        if (mat_mul_th(a, b, c, len) != 0) {
+            fprintf(stderr, "Failed to Matrix multiplication");
+            exit(1);
+        }
+        
+        stop = wtime();
+        sum_thread += stop - start;
+        //print_matrix(a, "A", len);
+        //print_matrix(b, "B", len);
+        //print_matrix(c, "C", len);
+        //printf("Processing time_thread [%d]: %fs",count + 1, stop - start);
+        count += 1;
     }
-    matinit(&a, &b, &c, len);
-
-    start = wtime();
-
-    if (mat_mul(a, b, c, len) != 0) {
-        fprintf(stderr, "Failed to Matrix multiplication");
-        exit(1);
-    }
-    
-    stop = wtime();
-
-    //print_matrix(a, "A", len);
-    //print_matrix(b, "B", len);
-    //print_matrix(c, "C", len);
-
-    printf("Processing time: %f\n", stop - start);
-    start = wtime();
-
-    if (mat_mul_th(a, b, c, len) != 0) {
-        fprintf(stderr, "Failed to Matrix multiplication");
-        exit(1);
-    }
-    
-    stop = wtime();
-
-    //print_matrix(a, "A", len);
-    //print_matrix(b, "B", len);
-    //print_matrix(c, "C", len);
-
-    printf("Processing time_thread: %f\n", stop - start);
-
+    //printf("\n");
+    printf("Avg_time_single: %fs\n", sum/(count));
+    printf("Avg_time_thread: %fs\n", sum_thread/(count));
     return 0;
 }
 

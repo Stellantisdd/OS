@@ -3,16 +3,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-int mat_add(int** src1, int** src2, int** dst, int len)
-{
-
-}
-
-int mat_sub(int** src1, int** src2, int** dst, int len)
-{
-
-}
-
 int mat_mul(int** src1, int** src2, int** dst, int len)
 {
     int i, j, k;

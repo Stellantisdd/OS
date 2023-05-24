@@ -6,7 +6,7 @@
 #include <semaphore.h>
 
 #define MAX_LEN 1200
-#define JUMP 200
+#define JUMP 100
 int count = 0;
 int count_num = 0;
 double sum = 0;
